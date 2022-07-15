@@ -1,0 +1,12 @@
+custom:
+  params:
+    int:
+      EMAIL_DLQ: van.hungnguyen@aircanada.ca
+    bat:
+      EMAIL_DLQ: van.hungnguyen@aircanada.ca      
+    crt:
+      EMAIL_DLQ: van.hungnguyen@aircanada.ca      
+    preprod:
+      EMAIL_DLQ: van.hungnguyen@aircanada.ca       
+    prod:
+      EMAIL_DLQ: van.hungnguyen@aircanada.ca

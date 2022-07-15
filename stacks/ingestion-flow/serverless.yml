@@ -1,0 +1,84 @@
+org: hungnv
+app: odh-3
+service: odh-3
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: us-east-1
+  stage: ${opt:stage, "prod"}
+functions:
+  test:
+    handler: functions/index.handler
+    events:
+      - http:
+          path: /test
+          method: GET
+          cors: true
+          integration: lambda
+          request:
+            template:
+              application/json: |
+                {
+                  "content": "$input.body"
+                }
+            passThrough: WHEN_NO_TEMPLATES
+projectDir: ../../            
+custom:
+  defaults: ${file(../../defaults.yml)}
+  defaultParams: ${self:custom.defaults.custom.params} 
+  params:
+    EMAIL_DLQ: ${self:custom.defaultParams.${self:provider.stage}.EMAIL_DLQ}      
+resources:            
+  Resources: 
+    MyQueue: 
+      Type: AWS::SQS::Queue
+      Properties: 
+        QueueName: "odh-3"
+    AlarmTopic: 
+      Type: AWS::SNS::Topic
+      Properties: 
+        Subscription: 
+          - 
+            Endpoint: ${self:custom.params.EMAIL_DLQ}
+            Protocol: "email"
+    QueueDepthAlarm: 
+      Type: AWS::CloudWatch::Alarm
+      Properties: 
+        AlarmDescription: "Alarm if queue depth increases to more than 10 messages"
+        Namespace: "AWS/SQS"
+        MetricName: "ApproximateNumberOfMessagesVisible"
+        Dimensions: 
+          - 
+            Name: "QueueName"
+            Value: 
+              Fn::GetAtt: 
+                - "MyQueue"
+                - "QueueName"
+        Statistic: "Sum"
+        Period: "300"
+        EvaluationPeriods: "1"
+        Threshold: "10"
+        ComparisonOperator: "GreaterThanThreshold"
+        AlarmActions: 
+          - 
+            Ref: "AlarmTopic"
+        InsufficientDataActions: 
+          - 
+            Ref: "AlarmTopic"
+  Outputs: 
+    QueueURL: 
+      Description: "URL of new Amazon SQS Queue"
+      Value: 
+        Ref: "MyQueue"
+    QueueARN: 
+      Description: "ARN of new AmazonSQS Queue"
+      Value: 
+        Fn::GetAtt: 
+          - "MyQueue"
+          - "Arn"
+    QueueName: 
+      Description: "Name of new Amazon SQS Queue"
+      Value: 
+        Fn::GetAtt: 
+          - "MyQueue"
+          - "QueueName"
