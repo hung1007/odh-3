@@ -1,6 +1,6 @@
 org: hungnv
-app: odh-3
-service: odh-3
+app: pnr-sns
+service: pnr-sns
 provider:
   name: aws
   runtime: nodejs14.x
@@ -33,7 +33,7 @@ resources:
     MyQueue: 
       Type: AWS::SQS::Queue
       Properties: 
-        QueueName: "odh-3"
+        QueueName: "pnr-sqs"
     AlarmTopic: 
       Type: AWS::SNS::Topic
       Properties: 
